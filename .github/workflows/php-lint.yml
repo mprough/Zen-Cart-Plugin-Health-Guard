@@ -21,3 +21,9 @@ jobs:
           php-version: ${{ matrix.php }}
       - name: Lint PHP files
         run: find files -type f -name '*.php' -print0 | xargs -0 -n1 php -l
+      - name: Test scanner
+        run: php -d zend.assertions=1 -d assert.exception=1 tests/scanner-test.php
+      - name: Check package versions
+        run: |
+          grep -Fq "'pluginVersion' => 'v1.0.0'" files/zc_plugins/PluginHealthGuard/v1.0.0/manifest.php
+          grep -Fq "public string \$version = '1.0.0'" files/zc_plugins/PluginHealthGuard/v1.0.0/Installer/ScriptedInstaller.php
