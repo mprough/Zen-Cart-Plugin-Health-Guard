@@ -1,5 +1,10 @@
 # Change history
 
+## 1.0.3, 2026-09-08
+
+- Recognized intentional catalog endpoints that explicitly load Zen Cart's `includes/application_top.php` as bootstrapped entry points.
+- Continued reporting unguarded internal catalog PHP files and added regression coverage for both cases.
+
 ## 1.0.2, 2026-09-08
 
 - Stopped direct-access guard warnings for catalog language files, including `includes/languages/*/extra_definitions`, because those files contain definitions rather than standalone storefront behavior.

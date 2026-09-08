@@ -7,7 +7,8 @@ Zen Cart Plugin Health Guard gives shop owners a read-only health report for enc
 - Runs only from **Tools > Plugin Health Guard** in the protected Zen Cart admin.
 - Inventories every plugin key and version under `zc_plugins`.
 - Shows the version and status recorded by Zen Cart's Plugin Manager.
-- Warns about retained plugin versions, malformed or missing manifests, symbolic links, writable PHP files, sensitive file types, and PHP files without a direct-access guard.
+- Warns about retained plugin versions, malformed or missing manifests, symbolic links, writable PHP files, sensitive file types, and internal PHP files without a direct-access guard.
+- Recognizes intentional catalog endpoints that load Zen Cart's `includes/application_top.php` before performing work.
 - Reports PHP, Zen Cart, OPcache, memory, and realpath-cache information.
 - Exports the current report as JSON for support.
 - Makes no storefront observer registrations, database changes during scans, automatic deletions, cache changes, or web-server configuration changes.
@@ -46,7 +47,7 @@ The installer adds one configuration row named `PLUGIN_HEALTH_GUARD_VERSION` and
 ## Limitations
 
 - The report examines files and current PHP settings. It does not benchmark individual observer callbacks or prove that a URL is externally reachable through a CDN or web server.
-- The direct-access-guard check is a conservative source-code check. Review a warning in context before changing the file.
+- The direct-access-guard check recognizes standard `IS_ADMIN_FLAG` guards and catalog endpoints that explicitly load `includes/application_top.php`. Review other warnings in context before changing a file.
 - OPcache information can be restricted by the host and may be unavailable.
 - The plugin never edits server rules, PHP settings, plugin files, or active-version records.
 
