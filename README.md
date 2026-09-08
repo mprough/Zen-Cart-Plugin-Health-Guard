@@ -2,6 +2,8 @@
 
 Zen Cart Plugin Health Guard gives shop owners a read-only health report for encapsulated plugins and the PHP environment that runs them. It inventories Plugin Manager packages, identifies retained versions and risky files, checks permissions and symbolic links, and reports OPcache and realpath-cache settings without adding work to storefront requests.
 
+The current production release is version 1.0.3.
+
 ## Features
 
 - Runs only from **Tools > Plugin Health Guard** in the protected Zen Cart admin.
@@ -13,6 +15,8 @@ Zen Cart Plugin Health Guard gives shop owners a read-only health report for enc
 - Exports the current report as JSON for support.
 - Makes no storefront observer registrations, database changes during scans, automatic deletions, cache changes, or web-server configuration changes.
 
+See the [complete feature list](docs/FEATURES.md) and [findings reference](docs/FINDINGS_REFERENCE.md) for details.
+
 ## Compatibility
 
 - Zen Cart 2.0.x, 2.1.x, and 2.2.x
@@ -21,7 +25,7 @@ Zen Cart Plugin Health Guard gives shop owners a read-only health report for enc
 ## Installation
 
 1. Back up the shop files and database.
-2. Copy the contents of `files/` to the shop root. This adds files only under `zc_plugins/PluginHealthGuard`.
+2. From the production ZIP, copy the `zc_plugins` directory to the shop root. From a repository checkout, copy the contents of `files/` instead. This adds files only under `zc_plugins/PluginHealthGuard`.
 3. In the Zen Cart admin, open **Modules > Plugin Manager**.
 4. Install **Zen Cart Plugin Health Guard**.
 5. Open **Tools > Plugin Health Guard**.
@@ -33,6 +37,8 @@ No core or template files are overwritten.
 ## Using the report
 
 Run the report after installing, removing, or upgrading plugins. A warning is a prompt for review, not proof that a plugin is broken. Do not remove an older version directory until the replacement has been tested and rollback is no longer required.
+
+Every run creates a fresh report. Results are not stored or carried forward. The scanner examines every version directory still present under `zc_plugins`, including inactive rollback versions, so a finding for an older version remains until that directory is corrected or removed.
 
 Plugin Health Guard deliberately does not apply blanket caching or throttling to `zc_plugins`. Those controls must be matched to the public route and its behavior so carts, checkout, AJAX, feeds, callbacks, and scheduled jobs are not damaged.
 
@@ -55,9 +61,11 @@ The installer adds one configuration row named `PLUGIN_HEALTH_GUARD_VERSION` and
 
 Report bugs or security concerns through the [PRO-Webs helpdesk](https://prowebsinc.zohodesk.com/portal/en/newticket). Installation, configuration, customization, server administration, and interpretation for third-party plugins are not included.
 
+For reporting guidance, see [SECURITY.md](SECURITY.md).
+
 ## License and warranty
 
-Copyright 2026 Melanie Prough, PRO-Webs, Inc. Released under GPL-2.0. Free distribution is provided without warranty.
+Copyright 2026 Melanie Prough, PRO-Webs, Inc. Released under GPL-2.0-only. Free distribution is provided without warranty. See [LICENSE](LICENSE) and [NOTICE.md](NOTICE.md).
 
 - [Repository](https://github.com/mprough/Zen-Cart-Plugin-Health-Guard)
 - [PRO-Webs.net](https://pro-webs.net/)

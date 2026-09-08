@@ -19,7 +19,9 @@ OPcache diagnostics use opcache_get_status(false) and opcache_get_configuration(
 - Information: useful context that is not itself a failure.
 - Good: a confirmed protective runtime condition.
 
-The direct-access-guard check is intentionally conservative. It checks relevant catalog PHP source for an IS_ADMIN_FLAG guard but does not claim that the file is externally reachable. Web-server configuration, rewrite rules, and parent-directory protection still determine reachability.
+The direct-access-guard check is intentionally conservative. It checks relevant catalog PHP source for an `IS_ADMIN_FLAG` guard or an intentional catalog endpoint that explicitly loads `includes/application_top.php`. It does not claim that the file is externally reachable. Web-server configuration, rewrite rules, and parent-directory protection still determine reachability.
+
+Catalog language files, template files, installer files, and vendor libraries are excluded from the direct-access check because their loading rules differ from internal storefront PHP. All version directories are scanned, including inactive rollback versions.
 
 ## Data handling
 
