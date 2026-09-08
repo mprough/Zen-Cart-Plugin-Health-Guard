@@ -20,10 +20,12 @@ Zen Cart Plugin Health Guard gives shop owners a read-only health report for enc
 ## Installation
 
 1. Back up the shop files and database.
-2. Copy the contents of `files/` to the shop root. This adds files only under `zc_plugins/PluginHealthGuard/v1.0.0`.
+2. Copy the contents of `files/` to the shop root. This adds files only under `zc_plugins/PluginHealthGuard`.
 3. In the Zen Cart admin, open **Modules > Plugin Manager**.
 4. Install **Zen Cart Plugin Health Guard**.
 5. Open **Tools > Plugin Health Guard**.
+
+When upgrading, copy the new files first, then upgrade the plugin in Plugin Manager. Existing configuration and admin-page permissions are preserved.
 
 No core or template files are overwritten.
 

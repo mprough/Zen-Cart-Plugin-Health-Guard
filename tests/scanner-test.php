@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-require __DIR__ . '/../files/zc_plugins/PluginHealthGuard/v1.0.0/admin/includes/classes/PluginHealthGuardScanner.php';
+require __DIR__ . '/../files/zc_plugins/PluginHealthGuard/v1.0.1/admin/includes/classes/PluginHealthGuardScanner.php';
 
 $fixture = sys_get_temp_dir() . '/phg-test-' . bin2hex(random_bytes(6));
 mkdir($fixture . '/GoodPlugin/v1.0.0/catalog/includes/classes', 0777, true);

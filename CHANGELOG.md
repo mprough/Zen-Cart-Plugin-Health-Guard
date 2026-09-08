@@ -1,5 +1,10 @@
 # Change history
 
+## 1.0.1, 2026-09-08
+
+- Fixed an admin fatal error caused by reusing Zen Cart's `$installedPlugins` bootstrap variable for scanner inventory data.
+- Preserved an existing Tools-menu registration and its permissions during upgrades.
+
 ## 1.0.0, 2026-09-05
 
 - Initial release.
