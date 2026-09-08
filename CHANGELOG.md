@@ -1,5 +1,10 @@
 # Change history
 
+## 1.0.2, 2026-09-08
+
+- Stopped direct-access guard warnings for catalog language files, including `includes/languages/*/extra_definitions`, because those files contain definitions rather than standalone storefront behavior.
+- Added a regression test for an unguarded language-definition file.
+
 ## 1.0.1, 2026-09-08
 
 - Fixed an admin fatal error caused by reusing Zen Cart's `$installedPlugins` bootstrap variable for scanner inventory data.
