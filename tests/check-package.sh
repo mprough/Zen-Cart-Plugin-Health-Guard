@@ -13,7 +13,7 @@ find "$root/files" -type f -name '*.php' -print0 | xargs -0 -n1 php -l >/dev/nul
 php -d zend.assertions=1 -d assert.exception=1 "$root/tests/scanner-test.php"
 
 grep -Fq "'pluginVersion' => 'v1.0.1'" "$version_root/manifest.php"
-grep -Fq "public string \\$version = '1.0.1'" "$version_root/Installer/ScriptedInstaller.php"
+grep -Fq "public string \$version = '1.0.1'" "$version_root/Installer/ScriptedInstaller.php"
 grep -Fq "'PLUGIN_HEALTH_GUARD_VERSION', '1.0.1'" "$version_root/Installer/ScriptedInstaller.php"
 if grep -Eq '^\$installedPlugins[[:space:]]*=' "$version_root/admin/plugin_health_guard.php"; then
     echo 'Admin page must not overwrite Zen Cart bootstrap variable $installedPlugins.' >&2
