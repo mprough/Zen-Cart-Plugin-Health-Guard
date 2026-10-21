@@ -25,3 +25,6 @@ jobs:
         run: php -d zend.assertions=1 -d assert.exception=1 tests/scanner-test.php
       - name: Check package versions
         run: bash tests/check-package.sh
+
+      - name: Build single-version release archive
+        run: python3 tests/build-release.py

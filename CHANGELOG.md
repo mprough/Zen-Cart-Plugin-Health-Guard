@@ -1,5 +1,12 @@
 # Change history
 
+## 1.0.4, 2026-10-21
+
+- Advance the patch version for resubmission to the migrated Zen Cart plugin repository.
+- Retain official plugin ID 2457; the forum release number is not the plugin ID.
+- Prepare the distribution ZIP with one current version directory and one readable manifest.
+- Check manifest ID and version consistency during release validation.
+
 ## 1.0.3, 2026-09-08
 
 - Recognized intentional catalog endpoints that explicitly load Zen Cart's `includes/application_top.php` as bootstrapped entry points.
