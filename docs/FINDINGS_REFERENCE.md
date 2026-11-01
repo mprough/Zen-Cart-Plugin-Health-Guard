@@ -6,21 +6,29 @@ Plugin Health Guard findings are diagnostic. Back up the shop and confirm the na
 
 ### Active version missing
 
-Plugin Manager records an active version whose directory is absent. Restore the exact directory or reinstall that plugin version before using its features.
+Plugin Manager records an active version whose directory is absent, or the plugin's whole folder is gone. Restore the exact directory or reinstall that plugin version before using its features.
 
 ### Manifest missing or version mismatch
 
 The package cannot be identified reliably, or the directory and declared version disagree. Replace it with a complete release from the plugin's trusted source.
 
+### Manifest syntax error
+
+The plugin's `manifest.php` cannot be parsed by PHP. Plugin Manager loads every manifest, so one broken file can stop that page from opening. Replace it with a complete release from the plugin's trusted source.
+
 ### Symbolic link found
 
-A package entry redirects to another filesystem location. Confirm that the link is intentional and that its target cannot escape the expected plugin boundary.
+A plugin directory, version directory, or package entry redirects to another filesystem location. Confirm that the link is intentional and that its target cannot escape the expected plugin boundary.
 
 ### World-writable PHP file
 
-Any server user can modify the PHP file. Ask the host or server administrator to correct ownership and permissions immediately.
+Any server user can modify the PHP file. Ask the host or server administrator to correct ownership and permissions immediately. This check does not run on Windows servers.
 
 ## Review findings
+
+### Disabled version missing
+
+Plugin Manager records a disabled plugin whose version directory is absent. Restore that version before enabling the plugin, or uninstall it.
 
 ### Multiple versions retained
 

@@ -5,6 +5,7 @@ declare(strict_types=1);
 final class PluginHealthGuardScanner
 {
     private const SENSITIVE_EXTENSIONS = ['bak', 'conf', 'env', 'ini', 'log', 'old', 'orig', 'sql', 'sqlite', 'swp'];
+    private const SOURCE_READ_BYTES = 32768;
     private string $root;
     private array $installed;
 
@@ -29,6 +30,11 @@ final class PluginHealthGuardScanner
                 $plugins[] = $plugin;
                 array_push($findings, ...$plugin['findings']);
             }
+            foreach (array_diff(array_map('strval', array_keys($this->installed)), $keys) as $key) {
+                $plugin = $this->scanPlugin($key);
+                $plugins[] = $plugin;
+                array_push($findings, ...$plugin['findings']);
+            }
         }
 
         $runtime = $this->runtime();
@@ -46,7 +52,7 @@ final class PluginHealthGuardScanner
         return [
             'generated_at' => gmdate('c'),
             'duration_ms' => round((microtime(true) - $started) * 1000, 2),
-            'plugin_root' => $this->root,
+            'plugin_root' => 'zc_plugins',
             'summary' => $summary,
             'runtime' => $runtime['values'],
             'plugins' => $plugins,
@@ -61,7 +67,11 @@ final class PluginHealthGuardScanner
         usort($versions, static fn(string $a, string $b): int => version_compare(ltrim($b, 'vV'), ltrim($a, 'vV')));
         $findings = [];
         $installed = $this->installed[$key] ?? null;
+        $disabled = (int)($installed['status'] ?? 0) === 2;
 
+        if (is_link($path)) {
+            $findings[] = $this->finding('critical', 'Symbolic link found', $key . ' is a symbolic link.', $key);
+        }
         if (count($versions) > 1) {
             $findings[] = $this->finding(
                 'warning',
@@ -70,7 +80,7 @@ final class PluginHealthGuardScanner
                 $key
             );
         }
-        if ($versions === []) {
+        if ($versions === [] && is_dir($path)) {
             $findings[] = $this->finding('warning', 'No version directory', $key . ' contains no version directories.', $key);
         }
 
@@ -86,7 +96,12 @@ final class PluginHealthGuardScanner
         } elseif (!in_array((string)($installed['version'] ?? ''), $versions, true)
             && !in_array('v' . ltrim((string)($installed['version'] ?? ''), 'vV'), $versions, true)
         ) {
-            $findings[] = $this->finding('critical', 'Active version missing', $key . ' is recorded as version ' . (string)($installed['version'] ?? 'unknown') . ', but that directory was not found.', $key);
+            $findings[] = $this->finding(
+                $disabled ? 'warning' : 'critical',
+                $disabled ? 'Disabled version missing' : 'Active version missing',
+                $key . ' is recorded as version ' . (string)($installed['version'] ?? 'unknown') . ', but that directory was not found.',
+                $key
+            );
         }
 
         return [
@@ -108,11 +123,16 @@ final class PluginHealthGuardScanner
         $staticCount = 0;
         $bytes = 0;
 
+        if (is_link($base)) {
+            $findings[] = $this->finding('critical', 'Symbolic link found', $key . '/' . $version . ' is a symbolic link.', $key, $version);
+        }
         if (!is_file($manifest)) {
             $findings[] = $this->finding('critical', 'Manifest missing', $key . '/' . $version . ' has no manifest.php.', $key, $version);
         } else {
             $source = (string)file_get_contents($manifest);
-            if (!preg_match("/'pluginVersion'\\s*=>\\s*'v?([^']+)'/", $source, $match)) {
+            if (!$this->parses($source)) {
+                $findings[] = $this->finding('critical', 'Manifest syntax error', $key . '/' . $version . ' has a manifest.php that PHP cannot parse.', $key, $version);
+            } elseif (!preg_match("/['\"]pluginVersion['\"]\\s*=>\\s*['\"]v?([^'\"]+)['\"]/", $this->withoutComments($source), $match)) {
                 $findings[] = $this->finding('warning', 'Manifest version unreadable', $key . '/' . $version . ' does not declare pluginVersion in the expected form.', $key, $version);
             } elseif (version_compare(ltrim($version, 'vV'), ltrim($match[1], 'vV'), '!=')) {
                 $findings[] = $this->finding('critical', 'Manifest version mismatch', $key . '/' . $version . ' declares v' . $match[1] . '.', $key, $version);
@@ -131,7 +151,7 @@ final class PluginHealthGuardScanner
                     continue;
                 }
                 if ($item->isDir()) {
-                    if (($item->getPerms() & 0002) !== 0) {
+                    if ($this->isWorldWritable($item->getPerms())) {
                         $findings[] = $this->finding('warning', 'World-writable directory', $key . '/' . $version . '/' . $relative . ' is world writable.', $key, $version, $relative);
                     }
                     continue;
@@ -141,11 +161,11 @@ final class PluginHealthGuardScanner
                 $extension = strtolower(pathinfo($relative, PATHINFO_EXTENSION));
                 if ($extension === 'php') {
                     ++$phpCount;
-                    if (($item->getPerms() & 0002) !== 0) {
+                    if ($this->isWorldWritable($item->getPerms())) {
                         $findings[] = $this->finding('critical', 'World-writable PHP file', $key . '/' . $version . '/' . $relative . ' is world writable.', $key, $version, $relative);
                     }
                     if ($this->needsGuardCheck($relative)) {
-                        $head = (string)file_get_contents($item->getPathname(), false, null, 0, 4096);
+                        $head = (string)file_get_contents($item->getPathname(), false, null, 0, self::SOURCE_READ_BYTES);
                         if (!$this->hasDirectAccessProtection($head)) {
                             $findings[] = $this->finding('warning', 'PHP direct-access guard not detected', $key . '/' . $version . '/' . $relative . ' should be reviewed for direct web access.', $key, $version, $relative);
                         }
@@ -158,7 +178,7 @@ final class PluginHealthGuardScanner
                 }
             }
         } catch (UnexpectedValueException $exception) {
-            $findings[] = $this->finding('critical', 'Version directory unreadable', $key . '/' . $version . ': ' . $exception->getMessage(), $key, $version);
+            $findings[] = $this->finding('critical', 'Version directory unreadable', $key . '/' . $version . ' could not be read completely.', $key, $version);
         }
 
         return [
@@ -234,25 +254,61 @@ final class PluginHealthGuardScanner
     {
         $relative = strtolower(str_replace('\\', '/', $relative));
         if (
-            str_starts_with($relative, 'installer/')
-            || str_contains($relative, '/vendor/')
-            || str_contains($relative, '/includes/languages/')
+            strpos($relative, 'installer/') === 0
+            || strpos($relative, '/vendor/') !== false
+            || strpos($relative, '/includes/languages/') !== false
         ) {
             return false;
         }
-        return str_starts_with($relative, 'catalog/') && !str_contains($relative, '/includes/templates/');
+        return strpos($relative, 'catalog/') === 0 && strpos($relative, '/includes/templates/') === false;
     }
 
     private function hasDirectAccessProtection(string $head): bool
     {
-        if (str_contains($head, "defined('IS_ADMIN_FLAG')") || str_contains($head, 'defined("IS_ADMIN_FLAG")')) {
+        $code = $this->withoutComments($head);
+        if (preg_match("/\\bdefined\\s*\\(\\s*['\"]IS_ADMIN_FLAG['\"]\\s*\\)/i", $code) === 1) {
             return true;
         }
 
         return preg_match(
-            '/\\b(?:include|include_once|require|require_once)\\s*(?:\\(\\s*)?[\'\"](?:\\.\\/)?includes\\/application_top\\.php[\'\"]/',
-            $head
+            "/\\b(?:include|include_once|require|require_once)\\b[^;]*includes\\/application_top\\.php['\"]/i",
+            $code
         ) === 1;
+    }
+
+    // Windows reports 0666 or 0777 for every file, so the world-write bit means nothing there.
+    private function isWorldWritable(int $permissions, string $separator = DIRECTORY_SEPARATOR): bool
+    {
+        return $separator === '/' && ($permissions & 0002) !== 0;
+    }
+
+    private function parses(string $source): bool
+    {
+        if (!function_exists('token_get_all')) {
+            return true;
+        }
+        try {
+            token_get_all($source, TOKEN_PARSE);
+        } catch (ParseError $exception) {
+            return false;
+        }
+        return true;
+    }
+
+    private function withoutComments(string $source): string
+    {
+        if (!function_exists('token_get_all')) {
+            return $source;
+        }
+        $code = '';
+        foreach (@token_get_all($source) as $token) {
+            if (!is_array($token)) {
+                $code .= $token;
+            } elseif ($token[0] !== T_COMMENT && $token[0] !== T_DOC_COMMENT) {
+                $code .= $token[1];
+            }
+        }
+        return $code;
     }
 
     private function iniBytes(string $value): int
@@ -262,12 +318,16 @@ final class PluginHealthGuardScanner
             return 0;
         }
         $number = (float)$value;
-        return match (strtolower(substr($value, -1))) {
-            'g' => (int)($number * 1024 * 1024 * 1024),
-            'm' => (int)($number * 1024 * 1024),
-            'k' => (int)($number * 1024),
-            default => (int)$number,
-        };
+        switch (strtolower(substr($value, -1))) {
+            case 'g':
+                return (int)($number * 1024 * 1024 * 1024);
+            case 'm':
+                return (int)($number * 1024 * 1024);
+            case 'k':
+                return (int)($number * 1024);
+            default:
+                return (int)$number;
+        }
     }
 
     private function finding(string $severity, string $title, string $detail, ?string $plugin = null, ?string $version = null, ?string $file = null): array
@@ -279,6 +339,6 @@ final class PluginHealthGuardScanner
             'plugin' => $plugin,
             'version' => $version,
             'file' => $file,
-        ], static fn(mixed $value): bool => $value !== null);
+        ], static fn($value): bool => $value !== null);
     }
 }

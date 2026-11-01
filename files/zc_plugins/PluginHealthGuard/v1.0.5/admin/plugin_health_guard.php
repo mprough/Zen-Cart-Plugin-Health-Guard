@@ -2,19 +2,27 @@
 
 declare(strict_types=1);
 
-require 'includes/application_top.php';
-
 if (!defined('IS_ADMIN_FLAG') || IS_ADMIN_FLAG !== true) {
     die('Illegal Access');
 }
 
-require_once DIR_FS_CATALOG . 'zc_plugins/PluginHealthGuard/v1.0.4/admin/includes/classes/PluginHealthGuardScanner.php';
+require 'includes/application_top.php';
+
+// Zen Cart before 2.1 has no English fallback for a plugin's language file.
+foreach (require __DIR__ . '/includes/languages/english/lang.plugin_health_guard.php' as $pluginHealthGuardKey => $pluginHealthGuardText) {
+    if (!defined($pluginHealthGuardKey)) {
+        define($pluginHealthGuardKey, $pluginHealthGuardText);
+    }
+}
+unset($pluginHealthGuardKey, $pluginHealthGuardText);
+
+require_once __DIR__ . '/includes/classes/PluginHealthGuardScanner.php';
 
 $pluginHealthGuardInstalledPlugins = [];
 if (defined('TABLE_PLUGIN_CONTROL')) {
     $pluginHealthGuardRows = $db->Execute('SELECT unique_key, version, status FROM ' . TABLE_PLUGIN_CONTROL);
     foreach ($pluginHealthGuardRows as $pluginHealthGuardRow) {
-        if ((int)($pluginHealthGuardRow['status'] ?? 0) === 1) {
+        if (in_array((int)($pluginHealthGuardRow['status'] ?? 0), [1, 2], true)) {
             $pluginHealthGuardInstalledPlugins[(string)$pluginHealthGuardRow['unique_key']] = $pluginHealthGuardRow;
         }
     }
@@ -32,7 +40,7 @@ if (($_GET['action'] ?? '') === 'export') {
     exit;
 }
 
-function phg_h(mixed $value): string
+function phg_h($value): string
 {
     return htmlspecialchars((string)$value, ENT_QUOTES | ENT_SUBSTITUTE, CHARSET);
 }
@@ -62,8 +70,8 @@ $severityLabels = ['critical' => 'Critical', 'warning' => 'Review', 'info' => 'I
     <h1><?php echo phg_h(HEADING_TITLE); ?></h1>
     <p><?php echo phg_h(TEXT_PAGE_INTRO); ?></p>
     <p>
-        <a class="btn btn-primary" href="<?php echo phg_h(zen_href_link(FILENAME_PLUGIN_HEALTH_GUARD)); ?>"><?php echo phg_h(TEXT_RUN_AGAIN); ?></a>
-        <a class="btn btn-default" href="<?php echo phg_h(zen_href_link(FILENAME_PLUGIN_HEALTH_GUARD, 'action=export')); ?>"><?php echo phg_h(TEXT_EXPORT_JSON); ?></a>
+        <a class="btn btn-primary" href="<?php echo zen_href_link(FILENAME_PLUGIN_HEALTH_GUARD); ?>"><?php echo phg_h(TEXT_RUN_AGAIN); ?></a>
+        <a class="btn btn-default" href="<?php echo zen_href_link(FILENAME_PLUGIN_HEALTH_GUARD, 'action=export'); ?>"><?php echo phg_h(TEXT_EXPORT_JSON); ?></a>
     </p>
 
     <div class="phg-summary">
@@ -106,10 +114,11 @@ $severityLabels = ['critical' => 'Critical', 'warning' => 'Review', 'info' => 'I
             <?php foreach ($report['plugins'] as $plugin) {
                 $files = array_sum(array_column($plugin['versions'], 'files'));
                 $bytes = array_sum(array_column($plugin['versions'], 'bytes'));
+                $state = $plugin['status'] === 2 ? 'Disabled: ' : 'Active: ';
                 ?>
                 <tr>
                     <td class="phg-path"><?php echo phg_h($plugin['key']); ?></td>
-                    <td><?php echo $plugin['installed_version'] !== null ? 'Active: ' . phg_h($plugin['installed_version']) : 'Not active'; ?></td>
+                    <td><?php echo $plugin['installed_version'] !== null ? $state . phg_h($plugin['installed_version']) : 'Not active'; ?></td>
                     <td><?php echo phg_h(implode(', ', array_column($plugin['versions'], 'version'))); ?></td>
                     <td><?php echo (int)$files; ?></td>
                     <td><?php echo phg_h(number_format($bytes / 1024, 1)); ?> KB</td>

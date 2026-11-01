@@ -2,26 +2,28 @@
 
 ## Request boundary
 
-Plugin Health Guard registers no storefront observer, autoloader, page module, AJAX endpoint, scheduled task, or output filter. Its scanner class is loaded only after an authorized administrator opens the Plugin Health Guard admin page.
+Plugin Health Guard registers no storefront observer, autoloader, page module, AJAX endpoint, scheduled task, or output filter. Its scanner class is loaded only after an authorized administrator opens the Plugin Health Guard admin page. A small admin init script supplies the English menu label when no translation exists and restores the Tools-menu entry if it was removed.
 
 ## What the scan measures
 
-The filesystem inventory reads directory entries and file metadata under the shop's zc_plugins directory. It reads each manifest and up to the first 4 KB of relevant catalog PHP files. It does not execute third-party manifests or plugin files.
+The filesystem inventory reads directory entries and file metadata under the shop's zc_plugins directory. It reads each manifest and up to the first 32 KB of relevant catalog PHP files, tokenizing them to ignore comments and to detect manifest syntax errors. It does not execute third-party manifests or plugin files.
 
-The Plugin Manager inventory reads TABLE_PLUGIN_CONTROL when that table constant is available. Only rows with active status are used to identify an installed version. No scan query writes to the database.
+The Plugin Manager inventory reads TABLE_PLUGIN_CONTROL when that table constant is available. Rows with enabled or disabled status identify an installed version, including one whose plugin folder no longer exists. No scan query writes to the database.
 
 OPcache diagnostics use opcache_get_status(false) and opcache_get_configuration(). Passing false prevents collection of the full cached-script list, which keeps the report smaller and avoids disclosing unrelated absolute filenames. Some hosts disable these functions, and the report treats that as unavailable rather than an application failure.
 
 ## Finding levels
 
-- Critical: a missing active version, missing manifest, symbolic link, or world-writable PHP file.
-- Review: a condition that deserves manual evaluation, such as retained versions, sensitive extensions, manifest inconsistencies, or low OPcache memory.
+- Critical: a missing active version, missing or unparsable manifest, symbolic link, or world-writable PHP file.
+- Review: a condition that deserves manual evaluation, such as retained versions, a disabled plugin's missing version, sensitive extensions, or low OPcache memory.
 - Information: useful context that is not itself a failure.
 - Good: a confirmed protective runtime condition.
 
 The direct-access-guard check is intentionally conservative. It checks relevant catalog PHP source for an `IS_ADMIN_FLAG` guard or an intentional catalog endpoint that explicitly loads `includes/application_top.php`. It does not claim that the file is externally reachable. Web-server configuration, rewrite rules, and parent-directory protection still determine reachability.
 
 Catalog language files, template files, installer files, and vendor libraries are excluded from the direct-access check because their loading rules differ from internal storefront PHP. All version directories are scanned, including inactive rollback versions.
+
+World-writable checks run only where PHP's directory separator is `/`. Windows reports 0666 or 0777 for every file, so the permission bit carries no information there.
 
 ## Data handling
 

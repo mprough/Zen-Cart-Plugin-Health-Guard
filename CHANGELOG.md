@@ -1,5 +1,20 @@
 # Change history
 
+## 1.0.5, 2026-11-01
+
+- Extended support to Zen Cart 1.5.8 through 3.0.0 and PHP 7.4 through 8.5.
+- Replaced PHP 8.0-only syntax and functions that stopped the report from loading on PHP 7.4.
+- Fixed the JSON download button, which reloaded the page instead of exporting.
+- Fixed a fatal error on non-English admins of Zen Cart 1.5.8 and 2.0.x.
+- Stopped false world-writable findings on Windows servers.
+- Added installed plugins whose whole folder is gone to the report, and showed disabled plugins as disabled.
+- Reported symbolic links at the plugin and version directory levels, not only inside a version.
+- Reported manifests with a PHP syntax error. Read double-quoted manifests correctly and ignored comments.
+- Recognized spaced `IS_ADMIN_FLAG` guards, guards after long file headers, and endpoints that build the `application_top.php` path. Text inside comments no longer counts as a guard.
+- Made the Tools-menu repair work on every release, and let a translated menu label override the English one.
+- Removed the absolute server path from the JSON report.
+- Added the `IS_ADMIN_FLAG` guard before the admin page's first include, and removed the hard-coded version from its class path.
+
 ## 1.0.4, 2026-10-21
 
 - Advance the patch version for resubmission to the migrated Zen Cart plugin repository.
