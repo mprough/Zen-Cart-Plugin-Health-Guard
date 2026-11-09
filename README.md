@@ -1,14 +1,17 @@
 # Zen Cart Plugin Health Guard
 
+**Download the install ZIP:** [PluginHealthGuard-v1.0.5-zen-repository.zip](https://raw.githubusercontent.com/mprough/Zen-Cart-Plugin-Health-Guard/main/dist/PluginHealthGuard-v1.0.5-zen-repository.zip). Extract it on your computer and follow the installation instructions below.
+
+
 Zen Cart Plugin Health Guard gives shop owners a read-only health report for encapsulated plugins and the PHP environment that runs them. It inventories Plugin Manager packages, identifies retained versions and risky files, checks permissions and symbolic links, and reports OPcache and realpath-cache settings without adding work to storefront requests.
 
-The current production release is version 1.0.4.
+The current production release is version 1.0.5.
 
 ## Features
 
 - Runs only from **Tools > Plugin Health Guard** in the protected Zen Cart admin.
 - Inventories every plugin key and version under `zc_plugins`.
-- Shows the version and status recorded by Zen Cart's Plugin Manager.
+- Shows the version and status recorded by Zen Cart's Plugin Manager, including disabled plugins and installed plugins whose files are gone.
 - Warns about retained plugin versions, malformed or missing manifests, symbolic links, writable PHP files, sensitive file types, and internal PHP files without a direct-access guard.
 - Recognizes intentional catalog endpoints that load Zen Cart's `includes/application_top.php` before performing work.
 - Reports PHP, Zen Cart, OPcache, memory, and realpath-cache information.
@@ -19,8 +22,8 @@ See the [complete feature list](docs/FEATURES.md) and [findings reference](docs/
 
 ## Compatibility
 
-- Zen Cart 2.0.x, 2.1.x, and 2.2.x
-- PHP 8.0 through 8.5, within the PHP versions supported by the installed Zen Cart release
+- Zen Cart 1.5.8 through 3.0.0
+- PHP 7.4 through 8.5, within the PHP versions supported by the installed Zen Cart release
 
 ## Installation
 
@@ -42,7 +45,7 @@ Every run creates a fresh report. Results are not stored or carried forward. The
 
 Plugin Health Guard deliberately does not apply blanket caching or throttling to `zc_plugins`. Those controls must be matched to the public route and its behavior so carts, checkout, AJAX, feeds, callbacks, and scheduled jobs are not damaged.
 
-## Upgrade from 1.0.3
+## Upgrade from 1.0.4
 
 Upload the new `files` contents into the store root, then select **Upgrade** for Plugin Health Guard under **Modules > Plugin Manager**. Do not uninstall before upgrading. The release updates the installed version marker and retains the existing Tools menu registration and permissions. Run the report after the upgrade.
 
@@ -59,6 +62,7 @@ The installer adds one configuration row named `PLUGIN_HEALTH_GUARD_VERSION` and
 - The report examines files and current PHP settings. It does not benchmark individual observer callbacks or prove that a URL is externally reachable through a CDN or web server.
 - The direct-access-guard check recognizes standard `IS_ADMIN_FLAG` guards and catalog endpoints that explicitly load `includes/application_top.php`. Review other warnings in context before changing a file.
 - OPcache information can be restricted by the host and may be unavailable.
+- World-writable checks run only on Linux and other Unix-style servers. Windows reports every file as writable, so that signal means nothing there.
 - The plugin never edits server rules, PHP settings, plugin files, or active-version records.
 
 ## Support and security
@@ -76,10 +80,10 @@ Copyright 2026 Melanie Prough, PRO-Webs, Inc. Released under GPL-2.0-only. Free 
 
 ## Zen Cart repository upload
 
-The current release is 1.0.4. Its manifest uses plugin ID 2457, matching the official plugin listing. Upload the production ZIP, which contains only v1.0.4 and one manifest, rather than GitHub's source ZIP containing release history. Do not substitute a forum release ID for the plugin ID.
+The current release is 1.0.5. Its manifest uses plugin ID 2457, matching the official plugin listing. Upload the production ZIP, which contains only v1.0.5 and one manifest, rather than GitHub's source ZIP containing release history. Do not substitute a forum release ID for the plugin ID.
 
 Plugin page: https://www.zen-cart.com/plugins/plugin-health-guard
 
 Maintainers can regenerate this single-version ZIP with `python3 tests/build-release.py`. The builder rejects a wrong plugin ID or version and excludes previous runtime versions.
 
-[Download the current Zen Cart repository ZIP](dist/PluginHealthGuard-v1.0.4-zen-repository.zip).
+[Download the current Zen Cart repository ZIP](dist/PluginHealthGuard-v1.0.5-zen-repository.zip).

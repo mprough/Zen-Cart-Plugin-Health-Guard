@@ -7,7 +7,7 @@ import zipfile
 
 ROOT = Path(__file__).resolve().parents[1]
 KEY = 'PluginHealthGuard'
-VERSION = '1.0.4'
+VERSION = '1.0.5'
 PLUGIN_ID = 2457
 PLUGIN = ROOT / 'files' / 'zc_plugins' / KEY / ('v' + VERSION)
 manifest = (PLUGIN / 'manifest.php').read_text()

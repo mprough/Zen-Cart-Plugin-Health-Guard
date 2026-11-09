@@ -3,13 +3,13 @@
 ## Plugin inventory
 
 - Inventories every plugin key and version directory under `zc_plugins`.
-- Compares directories with the active versions recorded by Plugin Manager.
+- Compares directories with the active and disabled versions recorded by Plugin Manager.
 - Counts files, PHP files, static assets, and package size.
 - Identifies missing active versions and retained rollback versions.
 
 ## Package safety checks
 
-- Checks for missing, unreadable, and version-mismatched manifests.
+- Checks for missing, unreadable, unparsable, and version-mismatched manifests.
 - Reports symbolic links and world-writable directories or PHP files.
 - Flags potentially sensitive file types such as logs, SQL files, backups, and environment files.
 - Reviews internal catalog PHP for direct-access protection.
