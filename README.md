@@ -1,5 +1,8 @@
 # Zen Cart Plugin Health Guard
 
+**Download the install ZIP:** [PluginHealthGuard-v1.0.5-zen-repository.zip](https://raw.githubusercontent.com/mprough/Zen-Cart-Plugin-Health-Guard/main/dist/PluginHealthGuard-v1.0.5-zen-repository.zip). Extract it on your computer and follow the installation instructions below.
+
+
 Zen Cart Plugin Health Guard gives shop owners a read-only health report for encapsulated plugins and the PHP environment that runs them. It inventories Plugin Manager packages, identifies retained versions and risky files, checks permissions and symbolic links, and reports OPcache and realpath-cache settings without adding work to storefront requests.
 
 The current production release is version 1.0.5.
